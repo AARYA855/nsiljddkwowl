@@ -1,0 +1,205 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+
+// --------------------------------------------------
+// 1. SELECTION SORT
+// --------------------------------------------------
+
+void selectionSort() {
+
+    int arr[] = {64, 25, 12, 22, 11};
+    int n = 5;
+
+    for (int i = 0; i < n - 1; i++) {
+
+        int minIndex = i;
+
+        for (int j = i + 1; j < n; j++) {
+
+            if (arr[j] < arr[minIndex]) {
+                minIndex = j;
+            }
+        }
+
+        swap(arr[i], arr[minIndex]);
+    }
+
+    cout << "\nSelection Sort Output:\n";
+
+    for (int i = 0; i < n; i++) {
+        cout << arr[i] << " ";
+    }
+
+    cout << endl;
+}
+
+
+// --------------------------------------------------
+// 2. JOB SCHEDULING
+// --------------------------------------------------
+
+struct Job {
+    char id;
+    int deadline;
+    int profit;
+};
+
+bool compare(Job a, Job b) {
+    return a.profit > b.profit;
+}
+
+void jobScheduling() {
+
+    Job jobs[] = {
+        {'A', 2, 100},
+        {'B', 1, 19},
+        {'C', 2, 27},
+        {'D', 1, 25},
+        {'E', 3, 15}
+    };
+
+    int n = 5;
+
+    sort(jobs, jobs + n, compare);
+
+    int slots[3] = {-1, -1, -1};
+
+    cout << "\nJob Scheduling Output:\n";
+
+    for (int i = 0; i < n; i++) {
+
+        for (int j = jobs[i].deadline - 1; j >= 0; j--) {
+
+            if (slots[j] == -1) {
+
+                slots[j] = i;
+                cout << jobs[i].id << " ";
+                break;
+            }
+        }
+    }
+
+    cout << endl;
+}
+
+
+// --------------------------------------------------
+// 3. DIJKSTRA ALGORITHM
+// --------------------------------------------------
+
+#define V 5
+
+int minDistance(int dist[], bool visited[]) {
+
+    int min = 9999;
+    int minIndex;
+
+    for (int i = 0; i < V; i++) {
+
+        if (!visited[i] && dist[i] < min) {
+
+            min = dist[i];
+            minIndex = i;
+        }
+    }
+
+    return minIndex;
+}
+
+void dijkstra() {
+
+    int graph[V][V] = {
+
+        {0, 10, 0, 30, 100},
+        {10, 0, 50, 0, 0},
+        {0, 50, 0, 20, 10},
+        {30, 0, 20, 0, 60},
+        {100, 0, 10, 60, 0}
+    };
+
+    int dist[V];
+    bool visited[V];
+
+    for (int i = 0; i < V; i++) {
+
+        dist[i] = 9999;
+        visited[i] = false;
+    }
+
+    dist[0] = 0;
+
+    for (int count = 0; count < V - 1; count++) {
+
+        int u = minDistance(dist, visited);
+
+        visited[u] = true;
+
+        for (int v = 0; v < V; v++) {
+
+            if (!visited[v] &&
+                graph[u][v] &&
+                dist[u] + graph[u][v] < dist[v]) {
+
+                dist[v] = dist[u] + graph[u][v];
+            }
+        }
+    }
+
+    cout << "\nDijkstra Output:\n";
+    cout << "Vertex\tDistance\n";
+
+    for (int i = 0; i < V; i++) {
+
+        cout << i << "\t" << dist[i] << endl;
+    }
+}
+
+
+// --------------------------------------------------
+// MAIN FUNCTION WITH SWITCH CASE
+// --------------------------------------------------
+
+int main() {
+
+    int choice;
+
+    do {
+
+        cout << "\n========== MENU ==========\n";
+        cout << "1. Selection Sort\n";
+        cout << "2. Job Scheduling\n";
+        cout << "3. Dijkstra Algorithm\n";
+        cout << "4. Exit\n";
+
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+
+            case 1:
+                selectionSort();
+                break;
+
+            case 2:
+                jobScheduling();
+                break;
+
+            case 3:
+                dijkstra();
+                break;
+
+            case 4:
+                cout << "\nExiting Program...\n";
+                break;
+
+            default:
+                cout << "\nInvalid Choice!\n";
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}

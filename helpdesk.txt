@@ -1,0 +1,67 @@
+print("===== HELP DESK EXPERT SYSTEM =====")
+
+while True:
+
+    print("\nSelect Problem:")
+    print("1. Password Reset")
+    print("2. Printer Issue")
+    print("3. Internet Problem")
+    print("4. Software Installation")
+    print("5. Exit")
+
+    try:
+        choice = int(input("Enter your choice: "))
+    except:
+        print("Please enter a valid number!")
+        continue
+
+    if choice == 1:
+
+        email = input("Do you have access to recovery email? (yes/no): ")
+
+        if email.lower() == "yes":
+            print("Solution: Use 'Forgot Password' option.")
+        else:
+            print("Solution: Contact administrator for reset.")
+
+    elif choice == 2:
+
+        power = input("Is printer power ON? (yes/no): ")
+
+        if power.lower() == "no":
+            print("Solution: Turn ON the printer.")
+        else:
+            print("Solution: Check cable and restart printer.")
+
+    elif choice == 3:
+
+        wifi = input("Are WiFi signals available? (yes/no): ")
+
+        if wifi.lower() == "no":
+            print("Solution: Restart router.")
+        else:
+            print("Solution: Check network settings.")
+
+    elif choice == 4:
+
+        admin = input("Do you have admin permission? (yes/no): ")
+
+        if admin.lower() == "yes":
+            print("Solution: Run setup file and follow instructions.")
+        else:
+            print("Solution: Request admin access.")
+
+    elif choice == 5:
+        print("Exiting Expert System...")
+        break
+
+    else:
+        print("Invalid Choice!")
+        continue
+
+    feedback = input("Is your problem solved? (yes/no): ")
+
+    if feedback.lower() == "yes":
+        print("Glad to help you!")
+    else:
+        print("Issue escalated to technician.")

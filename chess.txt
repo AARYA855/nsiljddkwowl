@@ -1,0 +1,101 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+class NQueens {
+    int N;
+    vector<vector<int>> board;
+    
+public:
+
+    // Constructor
+    NQueens(int n) {
+        N = n;
+        board.resize(N, vector<int>(N, 0));
+    }
+
+    // Function to check if queen can be placed
+    bool isSafe(int row, int col) {
+
+        // Check left side of row
+        for (int i = 0; i < col; i++) {
+            if (board[row][i] == 1)
+                return false;
+        }
+
+        // Check upper diagonal
+        for (int i = row, j = col; i >= 0 && j >= 0; i--, j--) {
+            if (board[i][j] == 1)
+                return false;
+        }
+
+        // Check lower diagonal
+        for (int i = row, j = col; i < N && j >= 0; i++, j--) {
+            if (board[i][j] == 1)
+                return false;
+        }
+
+        return true;
+    }
+
+    // Backtracking function
+    bool solve(int col) {
+
+        // Base condition
+        if (col >= N)
+            return true;
+
+        // Try placing queen in every row
+        for (int i = 0; i < N; i++) {
+
+            // Check if safe
+            if (isSafe(i, col)) {
+
+                // Place queen
+                board[i][col] = 1;
+
+                // Recur for next column
+                if (solve(col + 1))
+                    return true;
+
+                // Backtrack
+                board[i][col] = 0;
+            }
+        }
+
+        return false;
+    }
+
+    // Print solution
+    void printBoard() {
+
+        for (int i = 0; i < N; i++) {
+
+            for (int j = 0; j < N; j++) {
+                cout << board[i][j] << " ";
+            }
+
+            cout << endl;
+        }
+    }
+};
+
+int main() {
+
+    int n = 4;
+
+    NQueens q(n);
+
+    if (q.solve(0)) {
+
+        cout << "Solution Exists:\n";
+        q.printBoard();
+
+    } else {
+
+        cout << "No Solution Exists";
+    }
+
+    return 0;
+}
