@@ -1,0 +1,351 @@
+# 🛒 ShopVerse — MERN E-Commerce Store
+
+A full-stack e-commerce application built with **MongoDB, Express, React, and Node.js**.
+
+> **Live on AWS EC2 · PM2 · Node.js · React + Vite**
+
+---
+
+## 📁 Project Structure
+
+```
+shopverse/
+├── backend/
+│   ├── config/
+│   │   └── db.js
+│   ├── controllers/
+│   │   ├── orderController.js
+│   │   └── productController.js
+│   ├── models/
+│   │   ├── Order.js
+│   │   └── Product.js
+│   ├── routes/
+│   │   ├── orderRoutes.js
+│   │   └── productRoutes.js
+│   ├── .env              ← (not committed)
+│   ├── seeder.js
+│   └── server.js
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── context/
+│   │   └── pages/
+│   ├── index.html
+│   └── vite.config.js
+└── README.md
+```
+
+---
+
+## ⚙️ Tech Stack
+
+| Layer     | Technology                        |
+|-----------|-----------------------------------|
+| Frontend  | React 19, Vite, React Router v7   |
+| Backend   | Node.js, Express 4                |
+| Database  | MongoDB Atlas                     |
+| Process   | PM2                               |
+| Hosting   | AWS EC2 (Ubuntu 24.04)            |
+
+---
+
+## 🚀 AWS EC2 Deployment Guide
+
+
+### Step 1 — Launch an EC2 Instance
+
+1. Go to **AWS Console → EC2 → Launch Instance**
+2. Choose **Ubuntu Server 24.04 LTS (HVM)** (Free Tier eligible)
+3. Select instance type: **t2.micro** (Free Tier) or **t3.micro** for better performance
+4. **Key pair**: Create a new key pair → download the `.pem` file and store it safely
+5. **Security Group** — add the following inbound rules:
+
+   | Type        | Protocol | Port Range | Source    |
+   |-------------|----------|------------|-----------|
+   | SSH         | TCP      | 22         | 0.0.0.0/0 |
+   | HTTP        | TCP      | 80         | 0.0.0.0/0 |
+   | Custom TCP  | TCP      | 5000       | 0.0.0.0/0 |
+
+7. Click **Launch Instance**
+
+---
+
+### Step 2 — Connect to Your EC2 Instance
+
+On your local machine:
+
+```bash
+# Fix permissions on your key file
+chmod 400 /path/to/your-key.pem
+
+# SSH into the instance
+ssh -i /path/to/your-key.pem ubuntu@<YOUR_EC2_PUBLIC_IP>
+```
+
+---
+
+### Step 3 — Set Up the Server Environment
+
+```bash
+# Update package lists
+sudo apt update && sudo apt upgrade -y
+
+# Install Node.js 20 LTS via NodeSource
+sudo apt install -y nodejs
+sudo apt install npm
+
+# Verify installations
+node -v    # should print v20.x.x
+npm -v     # should print 10.x.x
+
+# Install PM2 globally
+sudo npm install -g pm2
+
+# Install Git
+sudo apt install -y git
+```
+
+---
+
+### Step 4 — Clone Your Repository
+
+```bash
+# Navigate to home directory
+cd ~
+
+# Clone your GitHub repository
+git clone https://github.com/<your-username>/<your-repo-name>.git
+
+# Enter the project directory
+cd <your-repo-name>
+```
+
+---
+
+### Step 5 — Configure Environment Variables
+
+```bash
+# Go to the backend directory
+cd backend
+
+# Install dependencies
+npm install
+
+# Create and configure the environment variables
+nano .env
+```
+
+Paste the following into the file (edit the values):
+
+```env
+NODE_ENV=production
+PORT=5000
+MONGO_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/shopverse?retryWrites=true&w=majority
+```
+
+Save and exit: `Ctrl + X` → `Y` → `Enter`
+
+> **Important:** Make sure your MongoDB Atlas cluster has your EC2 instance's public IP whitelisted under **Network Access** (or use `0.0.0.0/0` to allow all IPs during testing).
+
+---
+
+### Step 6 — Install Dependencies & Build Frontend
+
+```bash
+# ── Install frontend dependencies and build ──
+cd ../frontend
+npm install
+npm run build
+```
+
+This creates a `frontend/dist/` folder. The Express server is already configured to serve these static files in production mode (`server.js` checks `NODE_ENV === 'production'`).
+
+---
+
+### Step 7 — Seed the Database (Optional)
+
+```bash
+cd ../backend
+npm run seed
+```
+
+You should see:
+```
+✅ MongoDB Connected: cluster0...
+🗑️  Existing products cleared
+🌱 12 products seeded successfully!
+```
+
+---
+
+### Step 8 — Start the Backend with PM2
+
+```bash
+cd ../backend
+
+# Start the server with PM2
+pm2 start server.js --name "ecommerce"
+
+# Save the PM2 process list so it restarts after a reboot
+pm2 save
+
+# Configure PM2 to start on system boot
+pm2 startup
+```
+
+After running `pm2 startup`, copy and run the command it outputs (it looks like `sudo env PATH=...`).
+
+**Useful PM2 commands:**
+
+```bash
+pm2 list                    # View all running processes
+pm2 logs shopverse          # Stream live logs
+pm2 logs shopverse --lines 50  # View last 50 log lines
+pm2 restart shopverse       # Restart the app
+pm2 stop shopverse          # Stop the app
+pm2 delete shopverse        # Remove from PM2
+pm2 monit                   # Real-time monitoring dashboard
+```
+
+---
+
+### Step 9 — Verify the Deployment
+
+Open your browser and navigate to:
+
+```
+http://<YOUR_EC2_PUBLIC_IP>:5000
+```
+
+You should see the **ShopVerse** storefront served directly from Node.js.
+
+To verify the API is working:
+
+```bash
+# Health check
+curl http://localhost:5000/api/health
+
+# Should return: {"status":"ok","message":"E-Commerce API is running"}
+```
+
+---
+
+
+## 🔄 Updating the Deployment
+
+When you push new code to GitHub, SSH into your server and run:
+
+```bash
+cd ~/ecommerce-app-LP2
+
+# Pull latest changes
+git pull origin main
+
+# Rebuild frontend if you changed frontend code
+cd frontend
+npm install       # only if dependencies changed
+npm run build
+
+# Restart the backend
+cd ../backend
+npm install       # only if dependencies changed
+pm2 restart shopverse
+```
+
+---
+
+## 🛠️ Local Development Setup
+
+### Backend
+
+```bash
+cd backend
+cp .env.example .env      # fill in your MONGO_URI
+npm install
+npm run dev               # starts with nodemon on port 5000
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev               # starts Vite dev server on port 5173
+```
+
+The Vite config proxies `/api` requests to `http://localhost:5000`, so both servers must be running locally.
+
+### Seed Sample Products
+
+```bash
+cd backend
+npm run seed
+```
+
+---
+
+## 🌍 Environment Variables Reference
+
+Create `backend/.env` with the following keys:
+
+| Variable    | Description                          | Example                          |
+|-------------|--------------------------------------|----------------------------------|
+| `NODE_ENV`  | Set to `production` on the server    | `production`                     |
+| `PORT`      | Port the Express server listens on   | `5000`                           |
+| `MONGO_URI` | MongoDB Atlas connection string      | `mongodb+srv://user:pass@...`    |
+
+---
+
+## 🔒 Security Checklist Before Going Live
+
+- [ ] `backend/.env` is listed in `.gitignore` — never committed to Git
+- [ ] MongoDB Atlas IP whitelist is restricted to your EC2 IP only
+- [ ] Port `22` (SSH) is restricted to your own IP in the Security Group
+- [ ] PM2 startup script is configured so the app survives reboots
+
+---
+
+## 📦 Available Scripts
+
+### Backend (`/backend`)
+
+| Command         | Description                            |
+|-----------------|----------------------------------------|
+| `npm start`     | Start server with Node.js              |
+| `npm run dev`   | Start server with Nodemon (hot reload) |
+| `npm run seed`  | Seed the database with sample products |
+
+### Frontend (`/frontend`)
+
+| Command         | Description                            |
+|-----------------|----------------------------------------|
+| `npm run dev`   | Start Vite development server          |
+| `npm run build` | Build for production → `dist/`         |
+| `npm run lint`  | Run ESLint                             |
+| `npm run preview` | Preview the production build locally |
+
+---
+
+## 🐛 Troubleshooting
+
+**App not accessible on port 80/5000?**
+- Double-check EC2 Security Group inbound rules allow port `5000` and `80`
+
+**MongoDB connection error?**
+- Verify `MONGO_URI` in `.env` is correct
+- Check MongoDB Atlas → Network Access → your EC2 IP is whitelisted
+
+**PM2 process keeps crashing?**
+- Run `pm2 logs shopverse` to see the error
+- Make sure `.env` exists in the `backend/` directory
+
+**Frontend shows blank page or 404 after build?**
+- Ensure `npm run build` ran successfully and `frontend/dist/` exists
+- Confirm `NODE_ENV=production` is set in `.env`
+
+---
+
+## 📄 License
+
+MIT © ShopVerse
